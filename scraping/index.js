@@ -41,7 +41,7 @@ async function getLeaderBoard () {
   })
 }
 
-getLeaderBoard()
+await getLeaderBoard()
 /*
 const leaderboard = [{
     team: 'Team 1',
