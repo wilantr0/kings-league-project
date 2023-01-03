@@ -8,3 +8,5 @@ const $ = cheerio.load(html)
 $('table tbody tr').each((index, el) => {
     console.log($(el).text())
 })
+
+
