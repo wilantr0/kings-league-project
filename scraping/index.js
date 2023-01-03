@@ -1,38 +1,48 @@
 import * as cheerio from 'cheerio'
 
 const URLS = {
-    leaderboard: 'https://kingsleague.pro/estadisticas/clasificacion/'
+  leaderboard: 'https://kingsleague.pro/estadisticas/clasificacion/'
 }
 
-const scrape = async(url) =>{
-    const res = await fetch(url)
-    const html = await res.text()
-    return cheerio.load(html)
+async function scrape (url) {
+  const res = await fetch(url)
+  const html = await res.text()
+  return cheerio.load(html)
 }
 
-const $ = scrape(URLS.leaderboard)
+async function getLeaderBoard () {
+  const $ = await scrape(URLS.leaderboard)
+  const $rows = $('table tbody tr')
 
-$('table tbody tr').each((index, el) => {
-    const rawTeam = $(el).find('.fs-table-text_3').text().trim()
-    const rawVictories = $(el).find('.fs-table-text_4').text().trim()
-    const rawLoses = $(el).find('.fs-table-text_5').text().trim()
-    const rawScoaredGoals = $(el).find('.fs-table-text_6').text().trim()
-    const rawConcededGoals = $(el).find('.fs-table-text_7').text().trim()
-    const rawYellowCards = $(el).find('.fs-table-text_8').text().trim()
-    const rawRedCards = $(el).find('.fs-table-text_9').text().trim()
+  const cleanText = text => text
+    .replace(/\t|\n|\s:/g, '')
+    .replace(/.*:/g, '')
 
-    console.log({
-        rawTeam,
-        rawVictories,
-        rawLoses,
-        rawScoaredGoals,
-        rawConcededGoals,
-        rawYellowCards,
-        rawRedCards
-   })
-})
+  $rows.each((index, el) => {
+    const $el = $(el)
 
+    const rawTeam = $el.find('.fs-table-text_3').text().trim()
+    const rawVictories = $el.find('.fs-table-text_4').text().trim()
+    const rawLoses = $el.find('.fs-table-text_5').text().trim()
+    const rawScoaredGoals = $el.find('.fs-table-text_6').text().trim()
+    const rawConcededGoals = $el.find('.fs-table-text_7').text().trim()
+    const rawYellowCards = $el.find('.fs-table-text_8').text().trim()
+    const rawRedCards = $el.find('.fs-table-text_9').text().trim()
 
+    console.log(
+      cleanText(rawTeam),
+      cleanText(rawVictories),
+      cleanText(rawLoses),
+      cleanText(rawScoaredGoals),
+      cleanText(rawConcededGoals),
+      cleanText(rawYellowCards),
+      cleanText(rawRedCards)
+    )
+  })
+}
+
+getLeaderBoard()
+/*
 const leaderboard = [{
     team: 'Team 1',
     wins: 0,
@@ -41,4 +51,4 @@ const leaderboard = [{
     goalsConceded: 0,
     cardsYellow: 0,
     cardsRed: 0
-}]
+}] */
