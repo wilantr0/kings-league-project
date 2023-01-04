@@ -14,41 +14,30 @@ async function getLeaderBoard () {
   const $ = await scrape(URLS.leaderboard)
   const $rows = $('table tbody tr')
 
+  const LEADERBOARD_SELECTORS = {
+    team: '.fs-table-text_3',
+    wins: '.fs-table-text_4',
+    loses: '.fs-table-text_5',
+    goalsScored: '.fs-table-text_6',
+    goalsConceded: '.fs-table-text_7',
+    cardsYellow: '.fs-table-text_8',
+    cardsRed: '.fs-table-text_9'
+  }
+
   const cleanText = text => text
     .replace(/\t|\n|\s:/g, '')
     .replace(/.*:/g, '')
 
+  const leaderBoardSelectorEntries = Object.entries(LEADERBOARD_SELECTORS)
+
   $rows.each((index, el) => {
-    const $el = $(el)
-
-    const rawTeam = $el.find('.fs-table-text_3').text().trim()
-    const rawVictories = $el.find('.fs-table-text_4').text().trim()
-    const rawLoses = $el.find('.fs-table-text_5').text().trim()
-    const rawScoaredGoals = $el.find('.fs-table-text_6').text().trim()
-    const rawConcededGoals = $el.find('.fs-table-text_7').text().trim()
-    const rawYellowCards = $el.find('.fs-table-text_8').text().trim()
-    const rawRedCards = $el.find('.fs-table-text_9').text().trim()
-
-    console.log(
-      cleanText(rawTeam),
-      cleanText(rawVictories),
-      cleanText(rawLoses),
-      cleanText(rawScoaredGoals),
-      cleanText(rawConcededGoals),
-      cleanText(rawYellowCards),
-      cleanText(rawRedCards)
-    )
+    const leaderBoardEntries = leaderBoardSelectorEntries.map(([key, selector]) => {
+      const rawValue = $(el).find(selector).text()
+      const value = cleanText(rawValue)
+      return [key, value]
+    })
+    return Object.fromEntries(leaderBoardEntries)
   })
 }
 
 await getLeaderBoard()
-/*
-const leaderboard = [{
-    team: 'Team 1',
-    wins: 0,
-    loses: 0,
-    goalsScored: 0,
-    goalsConceded: 0,
-    cardsYellow: 0,
-    cardsRed: 0
-}] */
