@@ -1,4 +1,6 @@
 import * as cheerio from 'cheerio'
+import { writeFile } from 'node:fs/promises'
+import path from 'node:path'
 
 const URLS = {
   leaderboard: 'https://kingsleague.pro/estadisticas/clasificacion/'
@@ -15,29 +17,39 @@ async function getLeaderBoard () {
   const $rows = $('table tbody tr')
 
   const LEADERBOARD_SELECTORS = {
-    team: '.fs-table-text_3',
-    wins: '.fs-table-text_4',
-    loses: '.fs-table-text_5',
-    goalsScored: '.fs-table-text_6',
-    goalsConceded: '.fs-table-text_7',
-    cardsYellow: '.fs-table-text_8',
-    cardsRed: '.fs-table-text_9'
+    team: { selector: '.fs-table-text_3', typeOf: 'string' },
+    wins: { selector: '.fs-table-text_4', typeOf: 'number' },
+    loses: { selector: '.fs-table-text_5', typeOf: 'number' },
+    scoredGoals: { selector: '.fs-table-text_6', typeOf: 'number' },
+    concededGoals: { selector: '.fs-table-text_7', typeOf: 'number' },
+    yellowCards: { selector: '.fs-table-text_8', typeOf: 'number' },
+    redCards: { selector: '.fs-table-text_9', typeOf: 'number' }
   }
 
   const cleanText = text => text
     .replace(/\t|\n|\s:/g, '')
     .replace(/.*:/g, '')
+    .trim()
 
   const leaderBoardSelectorEntries = Object.entries(LEADERBOARD_SELECTORS)
 
+  const leaderboard = []
   $rows.each((index, el) => {
-    const leaderBoardEntries = leaderBoardSelectorEntries.map(([key, selector]) => {
+    const leaderBoardEntries = leaderBoardSelectorEntries.map(([key, { selector, typeOf }]) => {
       const rawValue = $(el).find(selector).text()
-      const value = cleanText(rawValue)
+      const cleanedValue = cleanText(rawValue)
+      const value = typeOf === 'string'
+        ? cleanedValue
+        : Number(cleanedValue)
       return [key, value]
     })
-    return Object.fromEntries(leaderBoardEntries)
+    leaderboard.push(Object.fromEntries(leaderBoardEntries))
   })
+  return leaderboard
 }
 
-await getLeaderBoard()
+const leaderboard = await getLeaderBoard()
+
+const filePath = path.join(process.cwd(), './db/leaderboard.json')
+
+await writeFile(filePath, JSON.stringify(leaderboard, null, 2), 'utf-8')
